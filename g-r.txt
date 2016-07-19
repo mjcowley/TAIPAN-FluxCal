@@ -1,0 +1,8 @@
+# SpectralType  Colour
+uka7v   -0.02
+ukf0v	 0.10
+ukf2v	 0.19
+ukf5v	 0.25
+ukf6v	 0.29
+ukf8v	 0.36
+ukg0v	 0.38
