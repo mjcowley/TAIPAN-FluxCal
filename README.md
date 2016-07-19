@@ -11,7 +11,7 @@ Python program to compute sensitivity functions for [TAIPAN](http://www.taipan-s
 **photometry/** - photometry of F stars to determine g-r colours (.csv)  
 **extinction/aao_extinction.tab** - file with atomospheric extinction at the AAT 
 
-### Executing
+### Quick start
 
 To create the sensitivity curves, run:
 
