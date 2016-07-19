@@ -52,5 +52,5 @@ For each star, the code performs the following:
 * Compute the sensitivity curve for that star and smooth it  
 * Compute the mean sensitity curve and its variance  
   
-This code is a modified version of the OsDES flux calibration code, written by Chris Lidman of the AAO. 
+This code is a modified version of the OsDES flux calibration code, written by Chris Lidman of the [AAO](https://www.aao.gov.au/) . 
 
