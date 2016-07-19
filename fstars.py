@@ -6,6 +6,7 @@ import pyfits
 import numpy
 import warnings
 import scipy as sp
+from termcolor import colored
 from scipy.interpolate import interp1d
 from scipy.interpolate import InterpolatedUnivariateSpline
 import matplotlib as mpl
@@ -23,10 +24,26 @@ mpl.rcParams.update({'font.size': 10})
 # ======  ╩ ╩╩ ╩╩╝╚╝  ╚═╝╚═╝═╩╝╚═╝  ====================================================================================
 # ======================================================================================================================
 
+print ""
+print colored(' /$$$$$$$$ /$$$$$$  /$$$$$$ /$$$$$$$   /$$$$$$  /$$   /$$', 'red')
+print colored('|__  $$__//$$__  $$|_  $$_/| $$__  $$ /$$__  $$| $$$ | $$', 'red')
+print colored('   | $$  | $$  \ $$  | $$  | $$  \ $$| $$  \ $$| $$$$| $$', 'red')
+print colored('   | $$  | $$$$$$$$  | $$  | $$$$$$$/| $$$$$$$$| $$ $$ $$', 'red')
+print colored('   | $$  | $$__  $$  | $$  | $$____/ | $$__  $$| $$  $$$$', 'red')
+print colored('   | $$  | $$  | $$  | $$  | $$      | $$  | $$| $$\  $$$', 'red')
+print colored('   | $$  | $$  | $$ /$$$$$$| $$      | $$  | $$| $$ \  $$', 'red')
+print colored('   |__/  |__/  |__/|______/|__/      |__/  |__/|__/  \__/', 'red')
+print colored('       ╔═╗╦  ╦ ╦═╗ ╦ ╔═╗╔═╗╦  ╦╔╗ ╦═╗╔═╗╔╦╗╦╔═╗╔╗╔', 'green')
+print colored('       ╠╣ ║  ║ ║╔╩╦╝ ║  ╠═╣║  ║╠╩╗╠╦╝╠═╣ ║ ║║ ║║║║', 'green')
+print colored('       ╚  ╩═╝╚═╝╩ ╚═ ╚═╝╩ ╩╩═╝╩╚═╝╩╚═╩ ╩ ╩ ╩╚═╝╝╚╝', 'green')
+print ""
+
 '''
 Python program to compute sensitivity functions for Taipan
 By Michael Cowley, michael.cowley@students.mq.edu.au
 '''
+
+raw_input("Press Enter to continue...")
 
 # ======================================================================================================================
 # ===== Supress Warnings ===============================================================================================
@@ -201,7 +218,6 @@ def sens(param,filterTransCurves,extinction,templates,catalogue,options):
         ax=fig.add_subplot(212)
         #plot the average fit and the percentage deviation from the average fit (two plots)
         ax.plot(wave[10:-10],(rms/medianfit)[10:-10])
-        print 'Median RMS %4.3f' % numpy.nanmedian((rms/medianfit)[10:-10])
         ax.set_xlabel('Wavelength')
         ax.set_ylim(0,0.5)
         ax.set_ylabel('scatter')
@@ -212,23 +228,20 @@ def sens(param,filterTransCurves,extinction,templates,catalogue,options):
             ax.set_ylabel('Sensitivity')
             ax.plot(wave[10:-10],fit[i,10:-10])
 
-
         # Compare distribution at some location with that of a Gaussian
-        fig=plt.figure()
-        plots=[{'figure':311,'loc':500},{'figure':312,'loc':1000},{'figure':313,'loc':1500}]
+        fig = plt.figure()
+        plots = [{'figure': 311, 'loc': 500}, {'figure': 312, 'loc': 1000}, {'figure': 313, 'loc': 1500}]
         for plot in plots:
-            ax=fig.add_subplot(plot['figure'])
-            step=0.01
-            loc=plot['loc']
-            bin=numpy.arange(medianfit[loc]-0.5,medianfit[loc]+0.5,step)
-            ax.hist(fit[:,loc],bin)
-            rv=norm(medianfit[loc],rms[loc])
-            ax.plot(bin,len(fit[:,loc])*rv.pdf(bin)*step,label='%d' % loc)
+            ax = fig.add_subplot(plot['figure'])
+            step = 0.01
+            loc = plot['loc']
+            bin = numpy.arange(medianfit[loc] - 0.5, medianfit[loc] + 0.5, step)
+            ax.hist(fit[:, loc], bin, range=(0,2))
+            rv = norm(medianfit[loc], rms[loc])
+            ax.plot(bin, len(fit[:, loc]) * rv.pdf(bin) * step, label='%d' % loc)
             ax.legend()
             ax.set_xlabel('sensitivity')
             ax.set_ylabel('frequency')
-        
-    
 
         fig=plt.figure()
         ax=fig.add_subplot(111)
