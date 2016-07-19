@@ -1,5 +1,6 @@
-# SpectralType  Colour
-uka7v   -0.02
+# Column SpectralType
+# Column Colour
+uka7v	-0.02
 ukf0v	 0.10
 ukf2v	 0.19
 ukf5v	 0.25
