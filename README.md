@@ -1,3 +1,5 @@
+![alt text](http://web.science.mq.edu.au/~mcowley/taipan/taipan.jpg "TAIPAN LOGO")
+
 Python program to compute sensitivity functions for [TAIPAN](http://www.taipan-survey.org/) . 
 ---
 ### Directories
