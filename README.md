@@ -1,16 +1,15 @@
 Python program to compute sensitivity functions for TAIPAN. 
 ---
-#### Directories
+### Directories
 
 **spectra/blue/** - spectra of F stars in the blue arm extracted from the files that 2dfdr produces (.fits)  
 **spectra/red/** - spectra of F stars in the red arm extracted from the files that 2dfdr produces (.fits)  
-**SEDs/** - seven synthetic SEDs for F stars plus their g-r colours (g-r.txt)  
+**SEDs/** - seven synthetic SEDs for F stars 
 **filters/** - filters curves (currently for DES and OmegaCam)  
 **photometry/** - photometry of F stars to determine g-r colours (.csv)  
 **extinction/** - file with atomospheric extinction at the AAT (aao_extinction.tab)  
-**outputs/** - 
 
-#### Executing
+### Executing
 
 To create the sensitivity curves, run:
 
