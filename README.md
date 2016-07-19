@@ -11,6 +11,9 @@ photometry/             - photometry of F stars to determine g-r colours (.csv)
 extinction/             - file with atomospheric extinction at the AAT (aao_extinction.tab)
 outputs/                - 
 
+Executing
+---------
+
 To create the sensitivity curves, run:
 
 python fstars.py -c fstars.config -s g-r.txt -p -l 18.0 -o red.fits -f Savitzky_Golay -a red -z -31.2
