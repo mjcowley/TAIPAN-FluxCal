@@ -1,41 +1,32 @@
 # coding=utf-8
-from optparse import OptionParser
 import library as LIB
 import os
 import pyfits
 import numpy
 import warnings
 import scipy as sp
+import matplotlib.pyplot as plt
+from optparse import OptionParser
 from termcolor import colored
 from scipy.interpolate import interp1d
 from scipy.interpolate import InterpolatedUnivariateSpline
-import matplotlib as mpl
-import matplotlib.pyplot as plt 
 from scipy.stats import norm
 from scipy import ndimage
 from math import factorial
-mpl.rcParams['font.family'] = 'RomanD'
-mpl.rcParams['axes.linewidth'] = 0.5
-mpl.rcParams.update({'font.size': 10})
-
-# ======================================================================================================================
-# ======  ╔╦╗╔═╗╦╔╗╔  ╔═╗╔═╗╔╦╗╔═╗  ====================================================================================
-# ======  ║║║╠═╣║║║║  ║  ║ ║ ║║║╣   ====================================================================================
-# ======  ╩ ╩╩ ╩╩╝╚╝  ╚═╝╚═╝═╩╝╚═╝  ====================================================================================
-# ======================================================================================================================
 
 print ""
-print colored(' /$$$$$$$$ /$$$$$$  /$$$$$$ /$$$$$$$   /$$$$$$  /$$   /$$', 'red')
-print colored('|__  $$__//$$__  $$|_  $$_/| $$__  $$ /$$__  $$| $$$ | $$', 'red')
-print colored('   | $$  | $$  \ $$  | $$  | $$  \ $$| $$  \ $$| $$$$| $$', 'red')
-print colored('   | $$  | $$$$$$$$  | $$  | $$$$$$$/| $$$$$$$$| $$ $$ $$', 'red')
-print colored('   | $$  | $$__  $$  | $$  | $$____/ | $$__  $$| $$  $$$$', 'red')
-print colored('   | $$  | $$  | $$  | $$  | $$      | $$  | $$| $$\  $$$', 'red')
-print colored('   | $$  | $$  | $$ /$$$$$$| $$      | $$  | $$| $$ \  $$', 'red')
-print colored('   |__/  |__/  |__/|______/|__/      |__/  |__/|__/  \__/', 'red')
-print colored('       ╔═╗╦  ╦ ╦═╗ ╦ ╔═╗╔═╗╦  ╦╔╗ ╦═╗╔═╗╔╦╗╦╔═╗╔╗╔', 'green')
-print colored('       ╠╣ ║  ║ ║╔╩╦╝ ║  ╠═╣║  ║╠╩╗╠╦╝╠═╣ ║ ║║ ║║║║', 'green')
-print colored('       ╚  ╩═╝╚═╝╩ ╚═ ╚═╝╩ ╩╩═╝╩╚═╝╩╚═╩ ╩ ╩ ╩╚═╝╝╚╝', 'green')
+print colored('########    ###    #### ########     ###    ##    ##', 'red')
+print colored('   ##      ## ##    ##  ##     ##   ## ##   ###   ##', 'yellow')
+print colored('   ##     ##   ##   ##  ##     ##  ##   ##  ####  ##', 'red')
+print colored('   ##    ##     ##  ##  ########  ##     ## ## ## ##', 'yellow')
+print colored('   ##    #########  ##  ##        ######### ##  ####', 'red')
+print colored('   ##    ##     ##  ##  ##        ##     ## ##   ###', 'yellow')
+print colored('   ##    ##     ## #### ##        ##     ## ##    ##', 'red')
+print colored('         ___  ____  ____  ____  ____                ', 'green')
+print colored('_________\__\/  __\/  __\/  __\/  __\_______________', 'green')
+print colored('____________/  /__/  /__/  /__/  /__________________', 'green')
+print colored('           \__/  \__/  \__/  \__/  \   <> \          ', 'green')
+print colored('                                    \_____/--<       ', 'green')
 print ""
 
 '''
@@ -46,14 +37,14 @@ By Michael Cowley, michael.cowley@students.mq.edu.au
 raw_input("Press Enter to continue...")
 
 # ======================================================================================================================
-# ===== Supress Warnings ===============================================================================================
+# ===== Suppress Overwrite Warning =====================================================================================
 # ======================================================================================================================
 
 warnings.filterwarnings('ignore', message='Overwriting existing file')
 numpy.seterr(divide='ignore', invalid='ignore')
 
 # ======================================================================================================================
-# ===== Globals ========================================================================================================
+# ===== Filter Curves ==================================================================================================
 # ======================================================================================================================
 
 filterNames=['u','g','r','i','z']
@@ -64,6 +55,7 @@ filterTransCurves={'u':'DES_u.dat','g':'DES_g.dat','r':'DES_r.dat','i':'DES_i.da
 # ======================================================================================================================
 
 parser = OptionParser()
+
 parser.add_option("-c", "--config", dest="config", default=None,
                   help="Configuration file")
 parser.add_option("-s", "--sens", dest="sens", default=None,
@@ -82,6 +74,7 @@ parser.add_option("-n", "--noextinction", dest="noextinction", action="store_tru
                   help="Extinction correction")
 parser.add_option("-p", "--plot", dest="plot", action="store_true", default=False,
                   help="plot intermediate results")
+
 (options, args) = parser.parse_args()
 
 param=LIB.buildDictionary(options.config)
@@ -92,6 +85,7 @@ param=LIB.buildDictionary(options.config)
 
 def savitzky_golay(y, window_size, order, deriv=0, rate=1):
     """Savitzky Golay Smoothing Algorithm"""
+
     try:
         window_size = numpy.abs(numpy.int(window_size))
         order = numpy.abs(numpy.int(order))
@@ -114,6 +108,7 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1):
 
 def correctExtinction(hdr,extinction):
     """Correct for Atmospheric Extinction"""
+
     wave=hdr['CRVAL1']+(numpy.arange(hdr['NAXIS1']) - hdr['CRPIX1']+1) * hdr['CDELT1']
     airmass=1.0/numpy.cos((hdr['ZDSTART']+hdr['ZDEND'])/2.*numpy.pi/180.)
     correction=interp1d(extinction.wave,10**(extinction.extinction * airmass/ 2.5))(wave)
