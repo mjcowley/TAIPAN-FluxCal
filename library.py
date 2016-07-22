@@ -189,10 +189,10 @@ class filterCurve:
 
         return self.magAB
 
-def readFilterCurves(filterNames,filterDir,filterTransCurves):
+def readFilterCurves(filter_names,filterDir,filter_curves):
     filterCurves={}
-    for filter in filterNames:
+    for filter in filter_names:
         filterCurves[filter]=filterCurve()
-        filterCurves[filter].read(filterDir+filterTransCurves[filter])
+        filterCurves[filter].read(filterDir+filter_curves[filter])
     return filterCurves
 
