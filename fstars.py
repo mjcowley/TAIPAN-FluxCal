@@ -1,5 +1,5 @@
 # coding=utf-8
-import library as LIB
+import library as lib
 import os
 import pyfits
 import numpy
@@ -13,6 +13,10 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 from scipy.stats import norm
 from scipy import ndimage
 from math import factorial
+import matplotlib as mpl
+mpl.rcParams['font.family'] = 'RomanD'
+mpl.rcParams['axes.linewidth'] = 0.5
+mpl.rcParams.update({'font.size': 10})
 
 print ""
 print colored('########    ###    #### ########     ###    ##    ##', 'red')
@@ -25,8 +29,8 @@ print colored('   ##    ##     ## #### ##        ##     ## ##    ##', 'red')
 print colored('         ___  ____  ____  ____  ____                ', 'green')
 print colored('_________\__\/  __\/  __\/  __\/  __\_______________', 'green')
 print colored('____________/  /__/  /__/  /__/  /__________________', 'green')
-print colored('           \__/  \__/  \__/  \__/  \   <> \          ', 'green')
-print colored('                                    \_____/--<       ', 'green')
+print colored('           \__/  \__/  \__/  \__/  \   <> \         ', 'green')
+print colored('                                    \_____/--<      ', 'green')
 print ""
 
 '''
@@ -47,8 +51,8 @@ numpy.seterr(divide='ignore', invalid='ignore')
 # ===== Filter Curves ==================================================================================================
 # ======================================================================================================================
 
-filterNames=['u','g','r','i','z']
-filterTransCurves={'u':'DES_u.dat','g':'DES_g.dat','r':'DES_r.dat','i':'DES_i.dat','z':'DES_z.dat'}
+filter_names = ['u', 'g', 'r', 'i', 'z']
+filter_curves = {'u': 'DES_u.dat', 'g': 'DES_g.dat', 'r': 'DES_r.dat', 'i': 'DES_i.dat', 'z': 'DES_z.dat'}
 
 # ======================================================================================================================
 # ===== Input Parameters ===============================================================================================
@@ -77,11 +81,12 @@ parser.add_option("-p", "--plot", dest="plot", action="store_true", default=Fals
 
 (options, args) = parser.parse_args()
 
-param=LIB.buildDictionary(options.config)
+param = lib.buildDictionary(options.config)
 
 # ======================================================================================================================
 # ===== Functions ======================================================================================================
 # ======================================================================================================================
+
 
 def savitzky_golay(y, window_size, order, deriv=0, rate=1):
     """Savitzky Golay Smoothing Algorithm"""
@@ -95,29 +100,30 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1):
         raise TypeError("window_size size must be a positive odd number")
     if window_size < order + 2:
         raise TypeError("window_size is too small for the polynomials order")
-    order_range = range(order+1)
-    half_window = (window_size -1) // 2
-    b = numpy.mat([[k**i for i in order_range] for k in range(-half_window, half_window+1)])
-    m = numpy.linalg.pinv(b).A[deriv] * rate**deriv * factorial(deriv)
-    firstvals = y[0] - numpy.abs( y[1:half_window+1][::-1] - y[0] )
-    lastvals = y[-1] + numpy.abs(y[-half_window-1:-1][::-1] - y[-1])
+    order_range = range(order + 1)
+    half_window = (window_size - 1) // 2
+    b = numpy.mat([[k ** i for i in order_range] for k in range(-half_window, half_window + 1)])
+    m = numpy.linalg.pinv(b).A[deriv] * rate ** deriv * factorial(deriv)
+    firstvals = y[0] - numpy.abs(y[1:half_window + 1][::-1] - y[0])
+    lastvals = y[-1] + numpy.abs(y[-half_window - 1:-1][::-1] - y[-1])
     y = numpy.concatenate((firstvals, y, lastvals))
 
-    return numpy.convolve( m[::-1], y, mode='valid')
+    return numpy.convolve(m[::-1], y, mode='valid')
 
 
-def correctExtinction(hdr,extinction):
+def correct_extinction(hdr, ext):
     """Correct for Atmospheric Extinction"""
 
-    wave=hdr['CRVAL1']+(numpy.arange(hdr['NAXIS1']) - hdr['CRPIX1']+1) * hdr['CDELT1']
-    airmass=1.0/numpy.cos((hdr['ZDSTART']+hdr['ZDEND'])/2.*numpy.pi/180.)
-    correction=interp1d(extinction.wave,10**(extinction.extinction * airmass/ 2.5))(wave)
+    wave = hdr['CRVAL1'] + (numpy.arange(hdr['NAXIS1']) - hdr['CRPIX1'] + 1) * hdr['CDELT1']
+    airmass = 1.0 / numpy.cos((hdr['ZDSTART'] + hdr['ZDEND']) / 2. * numpy.pi / 180.)
+    correction = interp1d(ext.wave, 10 ** (ext.extinction * airmass / 2.5))(wave)
 
     return correction
 
 
-def sens(param,filterTransCurves,extinction,templates,catalogue,options):
+def sens(param,filter_curves,extinct,templates,catalogue,options):
     """Generate Sensitivity Curves"""
+    
     fits=numpy.array([],float)
     nfit=0
     print options.arm
@@ -149,21 +155,20 @@ def sens(param,filterTransCurves,extinction,templates,catalogue,options):
                 # Use one of the colours to select the approrpiate F star template
                 print 'Using %s with a zeropoint of %6.2f' % (star,hdr[ZPkey[options.arm]])
                 template=param['seds']+'/'+findTemplate(templates,mag[1]-mag[2])+'.fits'
-                fstar=LIB.spectrum()
+                fstar = lib.spectrum()
                 fstar.read(template)
                 # Scale the template to the g magnitude of the star
                 # Template spectra are in F_lambda
                 fstar.flux=fstar.flux*3.631e-9/10**(mag[1]/2.5)
-                # Warp the synthetic spectrum so that it matches the observed colours
-                # and rebin to the wavelength scale of the data.
-                synthetic=warp(fstar,filterTransCurves,mag,hdr)
+                # Warp synthetic spectrum to match the observed colours and rebin to wavelength scale of data
+                synthetic = warp(fstar,filter_curves,mag,hdr)
 
                 # Compute the extinction correction
                 if not options.noextinction:
-                    correction=correctExtinction(hdr,extinction)
-                    data=data*correction
-                    var=var*correction**2.
-                # Filter the sensitivity funciotn
+                    correction = correct_extinction(hdr,extinct)
+                    data = data * correction
+                    var = var * correction ** 2.
+                # Filter the sensitivity function
                 if options.filter =='Savitzky_Golay':
                     # Smooth using the Savitzky Golay algorithm
                     sg=computeSens(synthetic,data,var)
@@ -175,7 +180,7 @@ def sens(param,filterTransCurves,extinction,templates,catalogue,options):
                     wave=numpy.arange(start[options.arm],end[options.arm],scale)
                     fit=interp1d(synthetic.wave,sg,bounds_error=False,fill_value=numpy.nan)(wave)
                 elif options.filter == 'Poly':  #
-                    # Smooth using a least squares polynomial fit.
+                    # Smooth using a least squares polynomial fit
                     sg = computeSensPoly(synthetic, data, var)
                     wave = numpy.arange(start[options.arm], end[options.arm], scale)
                     fit = interp1d(synthetic.wave, sg, bounds_error=False, fill_value=numpy.nan)(wave)
@@ -189,7 +194,7 @@ def sens(param,filterTransCurves,extinction,templates,catalogue,options):
     print 'Using %d stars' % nfit
     print 'Exlcuded %d stars' % notInUse
     print
-    # Compute a robust RMS, exclude Nans
+    # Compute a robust RMS, exclude nans
     rms=numpy.zeros(len(fits)/nfit,float)
     medianfit=numpy.zeros(len(fits)/nfit,float)
     for i in range(len(fits)/nfit):
@@ -204,15 +209,13 @@ def sens(param,filterTransCurves,extinction,templates,catalogue,options):
         else:
             rms[i]=numpy.nan
             medianfit[i]=numpy.nan
-            
-    #print numpy.isnan(medianfit).any()
 
     if options.plot:
 
         fig=plt.figure() 
         ax=fig.add_subplot(212)
-        #plot the average fit and the percentage deviation from the average fit (two plots)
-        ax.plot(wave[10:-10],(rms/medianfit)[10:-10])
+        # plot the average fit and the percentage deviation from the average fit (two plots)
+        ax.plot(wave[10:-10],(rms/medianfit)[10:-10], color='navy')
         ax.set_xlabel('Wavelength')
         ax.set_ylim(0,0.5)
         ax.set_ylabel('scatter')
@@ -223,33 +226,32 @@ def sens(param,filterTransCurves,extinction,templates,catalogue,options):
             ax.set_ylabel('Sensitivity')
             ax.plot(wave[10:-10],fit[i,10:-10])
 
-        # Compare distribution at some location with that of a Gaussian
+        # Compare distribution at some location (5650A + loc) with Gaussian
         fig = plt.figure()
         plots = [{'figure': 311, 'loc': 500}, {'figure': 312, 'loc': 1000}, {'figure': 313, 'loc': 1500}]
         for plot in plots:
             ax = fig.add_subplot(plot['figure'])
             step = 0.01
             loc = plot['loc']
+            wl = plot['loc']+5650
             bin = numpy.arange(medianfit[loc] - 0.5, medianfit[loc] + 0.5, step)
-            ax.hist(fit[:, loc], bin, range=(0,2))
+            ax.hist(fit[:, loc], bin, range=(0,2), color='salmon')
             rv = norm(medianfit[loc], rms[loc])
-            ax.plot(bin, len(fit[:, loc]) * rv.pdf(bin) * step, label='%d' % loc)
+            ax.plot(bin, len(fit[:, loc]) * rv.pdf(bin) * step, color='navy', label='%d' % wl)
             ax.legend()
             ax.set_xlabel('sensitivity')
             ax.set_ylabel('frequency')
 
         fig=plt.figure()
         ax=fig.add_subplot(111)
-        ax.plot(wave,medianfit,label=options.filter+' filtered')
+        ax.plot(wave,medianfit,label=options.filter+' filtered', color='navy')
         ax.set_xlabel('Wavelength')
         ax.set_ylabel('Sensitivity')
         ax.set_ylim([0, 1.8])
         ax.legend(loc='upper left')
 
-
         plt.show()
         plt.close()
-
 
     # Write out the sensitivity curve
     hdr['CDELT1']=scale
@@ -359,7 +361,7 @@ def warp(fstar,filters,mag,hdr):
             magDiff=numpy.append(magDiff,mag[i]-magAB[indices[i]])
     
     s = InterpolatedUnivariateSpline(effWavelength[indices], (magDiff))
-    synthetic=LIB.spectrum()
+    synthetic=lib.spectrum()
     synthetic.wave=hdr['CRVAL1']+(numpy.arange(hdr['NAXIS1']) - hdr['CRPIX1']+1) * hdr['CDELT1']
     ynew=s(synthetic.wave)
     synthetic.flux=interp1d(fstar.wave,fstar.flux)(synthetic.wave) / 10.**(ynew / 2.5)
@@ -372,14 +374,13 @@ def warp(fstar,filters,mag,hdr):
 
 if options.sens != None:
     # Read in the Fstar catalogue
-    catalogue,keys=LIB.readData(param['catalogue'],'csv')
+    catalogue,keys=lib.readData(param['catalogue'],'csv')
     # Read in the filter curves
-    filterCurves=LIB.readFilterCurves(filterNames,param['filters']+'/',filterTransCurves)
+    filterCurves=lib.readFilterCurves(filter_names,param['filters']+'/',filter_curves)
     # Read in colours and spectral types
-    templates,keys=LIB.readData(options.sens,'asciicolumn')
+    templates,keys=lib.readData(options.sens,'asciicolumn')
     # Read in the extinction curve
-    extinction=LIB.extinction()
+    extinction=lib.extinction()
     extinction.read(param['extinction'])
     # Compute sensitivity functions
     sens(param,filterCurves,extinction,templates,catalogue,options)
-    
