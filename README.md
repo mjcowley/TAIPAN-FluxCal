@@ -23,11 +23,11 @@ python fstars.py -c fstars.config -s g-r.txt -p -l 18.0 -o blue.fits -f Savitzky
 You'll get three plots when running the code: 
 
 **figure_1.png** - The individual sensitivity functions and the variance  
-![alt text](http://web.science.mq.edu.au/~mcowley/taipan/figure_1.png "Figure 1")
+![alt text](http://web.science.mq.edu.au/~mcowley/taipan/figure1.png "Figure 1")
 **figure_2.png** - The scatter in the sensitivity function at three wavelengths  
-![alt text](http://web.science.mq.edu.au/~mcowley/taipan/figure_2.png "Figure 2")
+![alt text](http://web.science.mq.edu.au/~mcowley/taipan/figure2.png "Figure 2")
 **figure_3.png** - The mean sensitivity function  
-![alt text](http://web.science.mq.edu.au/~mcowley/taipan/figure_3.png "Figure 3")
+![alt text](http://web.science.mq.edu.au/~mcowley/taipan/figure3.png "Figure 3")
 
 **-c** is the directory configuration file (fstars.config)  
 **-s** is the file that associates a star of a given colour to a spectral type (g-r.txt)  
