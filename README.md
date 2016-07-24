@@ -7,7 +7,7 @@ Python program to compute sensitivity functions for [TAIPAN](http://www.taipan-s
 **spectra/blue/** - spectra of F stars in the blue arm extracted from the files that 2dfdr produces (.fits)  
 **spectra/red/** - spectra of F stars in the red arm extracted from the files that 2dfdr produces (.fits)  
 **SEDs/** - seven synthetic SEDs for F stars   
-**filters/** - filters curves (currently for DES and OmegaCam)  
+**filters/** - filters curves  
 **photometry/** - photometry of F stars to determine g-r colours (.csv)  
 **extinction/aao_extinction.tab** - file with atomospheric extinction at the AAT 
 
@@ -39,10 +39,43 @@ You'll get three plots when running the code:
 **-z** the zero point limit of the observations (i.e. observations taken with cloud or in bad seeing will have low ZPs  
 and are excluded NOTE: The ZP is not computed by 2dfdr, but is included in this DES example)  
 
-To see the above, run:
+### Help Messages
 
-```python
-python fstars.py --help
+Help messages can be seen using ```python python fstars.py --help```:
+
+```
+
+########    ###    #### ########     ###    ##    ##
+   ##      ## ##    ##  ##     ##   ## ##   ###   ##
+   ##     ##   ##   ##  ##     ##  ##   ##  ####  ##
+   ##    ##     ##  ##  ########  ##     ## ## ## ##
+   ##    #########  ##  ##        ######### ##  ####
+   ##    ##     ##  ##  ##        ##     ## ##   ###
+   ##    ##     ## #### ##        ##     ## ##    ##
+         ___  ____  ____  ____  ____                
+_________\__\/  __\/  __\/  __\/  __\_______________
+____________/  /__/  /__/  /__/  /__________________
+           \__/  \__/  \__/  \__/  \   <> \         
+                                    \_____/--<      
+
+Usage: fstars.py [options]
+
+Options:
+  -h, --help            show this help message and exit
+  -c CONFIG, --config=CONFIG
+                        Configuration file
+  -s SENS, --sens=SENS  Sensitivity function
+  -o OUTPUT, --output=OUTPUT
+                        Sensitivity function
+  -l LIMIT, --limit=LIMIT
+                        Magnitude limit
+  -f FILTER, --filter=FILTER
+                        Filter
+  -a ARM, --arm=ARM     Arm to process
+  -z ZPLIMIT, --zplimit=ZPLIMIT
+                        Zero point limit
+  -n, --noextinction    Extinction Correction
+  -p, --plot            plot intermediate results
 ```
 
 For each star, the code performs the following:
