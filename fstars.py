@@ -13,10 +13,7 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 from scipy.stats import norm
 from scipy import ndimage
 from math import factorial
-import matplotlib as mpl
-mpl.rcParams['font.family'] = 'RomanD'
-mpl.rcParams['axes.linewidth'] = 0.5
-mpl.rcParams.update({'font.size': 10})
+
 
 print ""
 print colored('########    ###    #### ########     ###    ##    ##', 'red')
