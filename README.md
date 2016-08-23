@@ -86,7 +86,7 @@ For each star, the code performs the following:
 * Warp the spectral template to match the colours of the star exactly  
 * Apply an extinction correction  
 * Compute the sensitivity curve for that star and smooth it  
-* Compute the mean sensitity curve and its variance  
+* Compute the mean sensitivity curve and its variance  
   
 **Flow Chart** - Diagrammatic representation of TAIPAN-FluxCal
 ![alt text](http://web.science.mq.edu.au/~mcowley/taipan/flowchart.png "Flow Chart")
