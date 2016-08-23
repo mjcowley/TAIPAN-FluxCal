@@ -88,5 +88,8 @@ For each star, the code performs the following:
 * Compute the sensitivity curve for that star and smooth it  
 * Compute the mean sensitity curve and its variance  
   
+**Flow Chart** - Diagrammatic representation of TAIPAN-FluxCal
+![alt text](http://web.science.mq.edu.au/~mcowley/taipan/flowchart.png "Flow Chart")
+
 This code is a modified version of the OsDES flux calibration code, written by Chris Lidman of the [AAO](https://www.aao.gov.au/) . 
 
