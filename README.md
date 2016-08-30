@@ -34,7 +34,7 @@ You'll get three plots when running the code:
 **-p** is to produce the plots  
 **-l** is a magnitude limit (i.e. stars need to be brighter than this to be accepted)  
 **-o** is the name of the output file  
-**-f** is the smoothing filter used on the sensitivity curves (Savitzky_Golay, Gaussian or Poly)  
+**-f** is the smoothing filter used on the sensitivity curves (Savitzky_Golay or Spline)  
 **-a** is the arm to process (red or blue)  
 **-z** the zero point limit of the observations (i.e. observations taken with cloud or in bad seeing will have low ZPs  
 and are excluded NOTE: The ZP is not computed by 2dfdr, but is included in this DES example)  
@@ -89,7 +89,7 @@ For each star, the code performs the following:
 * Compute the mean sensitivity curve and its variance  
   
 **Flow Chart** - Diagrammatic representation of TAIPAN-FluxCal
-![alt text](http://web.science.mq.edu.au/~mcowley/taipan/flowchart.png "Flow Chart")
+![alt text](http://web.science.mq.edu.au/~mcowley/taipan/taipan_flowchart.png "Flow Chart")
 
 This code is a modified version of the OsDES flux calibration code, written by Chris Lidman of the [AAO](https://www.aao.gov.au/) . 
 
