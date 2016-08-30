@@ -4,16 +4,14 @@ import os
 import pyfits
 import numpy
 import warnings
-import scipy as sp
 import matplotlib.pyplot as plt
 from optparse import OptionParser
 from termcolor import colored
 from scipy.interpolate import interp1d
 from scipy.interpolate import InterpolatedUnivariateSpline
 from scipy.stats import norm
-from scipy import ndimage
-from math import factorial
-
+from scipy.signal import savgol_filter
+from scipy.interpolate import UnivariateSpline
 
 print ""
 print colored('########    ###    #### ########     ###    ##    ##', 'red')
@@ -72,30 +70,6 @@ parser.add_option("-p", "--plot", dest="plot", action="store_true", default=Fals
 # ===== Classes and Functions ==========================================================================================
 # ======================================================================================================================
 
-
-def savitzky_golay(y, window_size, order, deriv=0, rate=1):
-    """Savitzky Golay Smoothing Algorithm"""
-
-    try:
-        window_size = numpy.abs(numpy.int(window_size))
-        order = numpy.abs(numpy.int(order))
-    except ValueError:
-        raise ValueError("window_size and order have to be of type int")
-    if window_size % 2 != 1 or window_size < 1:
-        raise TypeError("window_size size must be a positive odd number")
-    if window_size < order + 2:
-        raise TypeError("window_size is too small for the polynomials order")
-    order_range = range(order + 1)
-    half_window = (window_size - 1) // 2
-    b = numpy.mat([[k ** i for i in order_range] for k in range(-half_window, half_window + 1)])
-    m = numpy.linalg.pinv(b).A[deriv] * rate ** deriv * factorial(deriv)
-    firstvals = y[0] - numpy.abs(y[1:half_window + 1][::-1] - y[0])
-    lastvals = y[-1] + numpy.abs(y[-half_window - 1:-1][::-1] - y[-1])
-    y = numpy.concatenate((firstvals, y, lastvals))
-
-    return numpy.convolve(m[::-1], y, mode='valid')
-
-
 def correct_extinction(hdr, ext):
     """Correct for Atmospheric Extinction"""
 
@@ -125,37 +99,6 @@ def getmag(fstar, catalogue):
     return numpy.array(mag)
 
 
-def computeSens(synthetic, data, var):
-    """Compute the Sensitivity Curve with Savitsky Golay"""
-    # Divide by the synthetic curve
-    # First use a median filter
-    # good=~(numpy.isnan(data) | numpy.isnan(var))
-    medfilter = 21
-    y = medfilt(data / synthetic.flux / 1.e19, medfilter)
-    return savitzky_golay(y, 31, 1)
-
-
-def computeSensGauss(synthetic, data, var):
-    """Compute the Sensitivity Curve with Gaussian"""
-    # interpolate over pixels with excess variance 
-    vmed = numpy.nanmedian(var)
-    mask = var > 3 * vmed  # true for values that need to be interpolated over
-    xp = numpy.arange(len(data), dtype=int)[~mask]
-    fp = data[~mask]
-    x = numpy.arange(len(data), dtype=int)[mask]  # indices to interpolate over
-    data[mask] = numpy.interp(x, xp, fp)
-    return ndimage.gaussian_filter(data / synthetic.flux / 1.e19, sigma=(51), order=0)
-
-
-def computeSensPoly(synthetic, data, var):
-    """Compute the Sensitivity Curve with Polynomial"""
-    # High-order polynomials may oscillate wildly
-    x = numpy.arange(len(data), dtype=int)
-    y = data / synthetic.flux / 1.e19
-    p = sp.polyfit(x, y, deg=15)
-    return sp.polyval(p, x)
-
-
 def medfilt(x, k):
     """Apply a length-k median filter to a 1D array x. Boundaries are extended by repeating endpoints"""
     assert k % 2 == 1, "Median filter length must be odd."
@@ -170,6 +113,22 @@ def medfilt(x, k):
         y[:-j, -(i + 1)] = x[j:]
         y[-j:, -(i + 1)] = x[-1]
     return numpy.nanmedian(y, axis=1)
+
+
+def computeSens(synthetic, data, var):
+    """Compute the Sensitivity Curve with Savitsky Golay"""
+    medfilter = 21
+    y = medfilt(data / synthetic.flux / 1.e19, medfilter)
+    return savgol_filter(y, 101, 2)
+
+
+def computeSensSpline(synthetic, data, var):
+    """Compute the Sensitivity Curve with Univariate Spline"""
+    x = numpy.arange(len(data), dtype=int)
+    medfilter = 21
+    y = medfilt(data / synthetic.flux / 1.e19, medfilter)
+    func_spline = UnivariateSpline(x, y, k=3, s=0.5)
+    return func_spline(x)
 
 
 def findTemplate(templates, colour):
@@ -423,7 +382,6 @@ def sens(param, filter_curves, extinct, templates, catalogue, options):
             mag = getmag(hdr['OBJECT'], catalogue)
             use = False
             ZPkey = {'red': 'REDZP', 'blue': 'BLUZP'}
-            cts = numpy.nanmedian(data[1300:1350])
             if len(mag) > 3:
                 if mag[2] > 10. and mag[2] < float(options.limit) and mag[1] > 0 and hdr[ZPkey[options.arm]] < float(
                         options.zplimit):
@@ -453,16 +411,11 @@ def sens(param, filter_curves, extinct, templates, catalogue, options):
                     sg = computeSens(synthetic, data, var)
                     wave = numpy.arange(start[options.arm], end[options.arm], scale)
                     fit = interp1d(synthetic.wave, sg, bounds_error=False, fill_value=numpy.nan)(wave)
-                elif options.filter == 'Gaussian':  #
-                    # Smooth using a Gaussian filter after removing points with excessive variance
-                    sg = computeSensGauss(synthetic, data, var)
+                elif options.filter == 'Spline':
+                    # Smooth using an interpolation spline
+                    sp = computeSensSpline(synthetic, data, var)
                     wave = numpy.arange(start[options.arm], end[options.arm], scale)
-                    fit = interp1d(synthetic.wave, sg, bounds_error=False, fill_value=numpy.nan)(wave)
-                elif options.filter == 'Poly':  #
-                    # Smooth using a least squares polynomial fit
-                    sg = computeSensPoly(synthetic, data, var)
-                    wave = numpy.arange(start[options.arm], end[options.arm], scale)
-                    fit = interp1d(synthetic.wave, sg, bounds_error=False, fill_value=numpy.nan)(wave)
+                    fit = interp1d(synthetic.wave, sp, bounds_error=False, fill_value=numpy.nan)(wave)
                 # Scale the fits by the median value
                 fits = numpy.append(fits, fit / numpy.nanmedian(fit))
                 nfit += 1
