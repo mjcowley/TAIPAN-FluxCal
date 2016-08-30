@@ -467,7 +467,6 @@ def sens(param, filter_curves, extinct, templates, catalogue, options):
             ax.plot(bin, len(fit[:, loc]) * rv.pdf(bin) * step, color='navy', label='%d' % wl)
             ax.legend()
             ax.set_xlabel('sensitivity')
-            #ax.set_xlim([0.4, 1.6])
             ax.set_ylabel('frequency')
         fig = plt.figure()
         ax = fig.add_subplot(111)
