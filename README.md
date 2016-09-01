@@ -26,15 +26,15 @@ python fstars.py
 
 The following command-line options are available:
 
-**-c** is the configuration file for directories and files seen above (fstars.config)  
-**-s** is the file that associates a star of a given colour to a spectral type (g-r.txt)  
-**-p** is to produce diagnostic plots  
-**-l** is a magnitude limit (i.e. stars need to be brighter than this to be accepted)  
-**-f** is the smoothing filter used on the sensitivity curves (Savitzky_Golay or Spline)  
-**-d** is the directory containing the two spectra directories (ccd_1 and ccd_2)  
-**-o** is the name of the output file (written in -d directory)  
-**-a** is to arm to process (ccd_1 or ccd_2)  
-**-z** is the zero point limit of the observations  
+**-c** is the configuration file for directories and files seen above (default: fstars.config)  
+**-s** is the file that associates a star of a given colour to a spectral type (default: g-r.txt)  
+**-p** is to produce diagnostic plots (default: False)  
+**-l** is a magnitude limit (default: 18.0)  
+**-f** is the smoothing filter used on the sensitivity curves (default: Spline)  
+**-d** is the directory containing the two spectra directories (default: spectra/)  
+**-o** is the name of the output file written in -d directory (default: test.fits)  
+**-a** is to arm to process (default: ccd_1)  
+**-z** is the zero point limit of the observations (default: -30.5)
 
 To generate spectral response curves from flux calibration, run:
 
