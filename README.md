@@ -1,81 +1,83 @@
 ![alt text](http://web.science.mq.edu.au/~mcowley/taipan/taipan.jpg "TAIPAN LOGO")
 
-Python program to compute sensitivity functions for [TAIPAN](http://www.taipan-survey.org/) . 
+Python code for flux calibration in the TAIPAN Spectroscopic Survey
+
+Original by Michael Cowley
+
+Copyright 2016, [TAIPAN Survey Team](http://www.taipan-survey.org/)
+
 ---
 ### Directories and files
 
-**spectra/blue/** - spectra of F stars in the blue arm extracted from the files that 2dfdr produces (.fits)  
-**spectra/red/** - spectra of F stars in the red arm extracted from the files that 2dfdr produces (.fits)  
 **SEDs/** - seven synthetic SEDs for F stars   
-**filters/** - filters curves  
+**filters/** - instrument filter curves  
 **photometry/** - photometry of F stars to determine g-r colours (.csv)  
 **extinction/aao_extinction.tab** - file with atomospheric extinction at the AAT 
 
 ### Quick start
 
-To create the sensitivity curves, run:
+To generate spectral response curves from flux calibration, run:
 
 ```python
-python fstars.py -c fstars.config -s g-r.txt -p -l 18.0 -o red.fits -f Savitzky_Golay -a red -z -31.2
-python fstars.py -c fstars.config -s g-r.txt -p -l 18.0 -o blue.fits -f Savitzky_Golay -a blue -z -30.5
+python fstars.py
 ```
 
-You'll get three plots when running the code: 
+### Command-line options
 
-**figure_1.png** - The individual sensitivity functions and the variance  
+The following command-line options are available:
+
+**-c** is the configuration file for directories and files seen above (fstars.config)  
+**-s** is the file that associates a star of a given colour to a spectral type (g-r.txt)  
+**-p** is to produce diagnostic plots  
+**-l** is a magnitude limit (i.e. stars need to be brighter than this to be accepted)  
+**-f** is the smoothing filter used on the sensitivity curves (Savitzky_Golay or Spline)  
+**-d** is the directory containing the two spectra directories (ccd_1 and ccd_2)  
+**-o** is the name of the output file (written in -d directory)  
+**-a** is to arm to process (ccd_1 or ccd_2)  
+**-z** is the zero point limit of the observations  
+
+To generate spectral response curves from flux calibration, run:
+
+```python
+python fstars.py -c fstars.config -s g-r.txt -p -l 18.0 -f Spline -d spectra/ -o src_ccd_1.fits -a ccd_1 -z -30.5
+```
+
+If selected, the following diagnostics plots will be generated: 
+
+**figure_1** - The individual sensitivity functions and the variance  
 ![alt text](http://web.science.mq.edu.au/~mcowley/taipan/figure1.png "Figure 1")
-**figure_2.png** - The scatter in the sensitivity function at three wavelengths  
+
+**figure_2** - The scatter in the sensitivity function at three wavelengths  
 ![alt text](http://web.science.mq.edu.au/~mcowley/taipan/figure2.png "Figure 2")
-**figure_3.png** - The mean sensitivity function  
+
+**figure_3** - The mean sensitivity function  
 ![alt text](http://web.science.mq.edu.au/~mcowley/taipan/figure3.png "Figure 3")
 
-**-c** is the directory configuration file (fstars.config)  
-**-s** is the file that associates a star of a given colour to a spectral type (g-r.txt)  
-**-p** is to produce the plots  
-**-l** is a magnitude limit (i.e. stars need to be brighter than this to be accepted)  
-**-o** is the name of the output file  
-**-f** is the smoothing filter used on the sensitivity curves (Savitzky_Golay or Spline)  
-**-a** is the arm to process (red or blue)  
-**-z** the zero point limit of the observations (i.e. observations taken with cloud or in bad seeing will have low ZPs  
-and are excluded NOTE: The ZP is not computed by 2dfdr, but is included in this DES example)  
+### Help Message
 
-### Help Messages
-
-Help messages can be seen using ```python python fstars.py --help```:
+The help message can be seen using ```python fstars.py --help```:
 
 ```
-
-########    ###    #### ########     ###    ##    ##
-   ##      ## ##    ##  ##     ##   ## ##   ###   ##
-   ##     ##   ##   ##  ##     ##  ##   ##  ####  ##
-   ##    ##     ##  ##  ########  ##     ## ## ## ##
-   ##    #########  ##  ##        ######### ##  ####
-   ##    ##     ##  ##  ##        ##     ## ##   ###
-   ##    ##     ## #### ##        ##     ## ##    ##
          ___  ____  ____  ____  ____                
 _________\__\/  __\/  __\/  __\/  __\_______________
-____________/  /__/  /__/  /__/  /__________________
+__TAIPAN_______/  /__/  /__/  /__/  /__FluxCal______
            \__/  \__/  \__/  \__/  \   <> \         
                                     \_____/--<      
 
 Usage: fstars.py [options]
 
 Options:
-  -h, --help            show this help message and exit
-  -c CONFIG, --config=CONFIG
-                        Configuration file
-  -s SENS, --sens=SENS  Sensitivity function
-  -o OUTPUT, --output=OUTPUT
-                        Sensitivity function
-  -l LIMIT, --limit=LIMIT
-                        Magnitude limit
-  -f FILTER, --filter=FILTER
-                        Filter
-  -a ARM, --arm=ARM     Arm to process
-  -z ZPLIMIT, --zplimit=ZPLIMIT
-                        Zero point limit
-  -n, --noextinction    Extinction Correction
-  -p, --plot            plot intermediate results
+  -c CONFIG, --config=CONFIG, Configuration file
+  -d DIRECTORY, --directory=DIRECTORY, Spectra Directory
+  -s SENS, --sens=SENS, Sensitivity function
+  -o OUTPUT, --output=OUTPUT, Sensitivity function
+  -l LIMIT, --limit=LIMIT, Magnitude limit
+  -f FILTER, --filter=FILTER, Filter
+  -a ARM, --arm=ARM, Arm to process
+  -z ZPLIMIT, --zplimit=ZPLIMIT, Zero point limit
+  -n, --noextinction, Extinction Correction
+  -p, --plot, Plot diagnostics
+
 ```
 
 For each star, the code performs the following:
@@ -88,7 +90,9 @@ For each star, the code performs the following:
 * Compute the sensitivity curve for that star and smooth it  
 * Compute the mean sensitivity curve and its variance  
   
-**Flow Chart** - Diagrammatic representation of TAIPAN-FluxCal
+### Help Message
+ 
+ Diagrammatic representation of TAIPAN-FluxCal
 ![alt text](http://web.science.mq.edu.au/~mcowley/taipan/taipan_flowchart.png "Flow Chart")
 
 This code is a modified version of the OsDES flux calibration code, written by Chris Lidman of the [AAO](https://www.aao.gov.au/) . 
